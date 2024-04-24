@@ -6,7 +6,7 @@
 /*   By: cboujrar <cboujrar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 15:16:16 by cboujrar          #+#    #+#             */
-/*   Updated: 2024/03/16 15:32:02 by cboujrar         ###   ########.fr       */
+/*   Updated: 2024/04/24 13:49:49 by cboujrar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,40 @@ void	check_pid(char *str)
 	i = 0;
 	while (str[i])
 	{
-		if (is_number(str[i]) == 0)
+		if (is_number(str[i]) == 0 || str[0] == '0')
 		{
-			printf("invalid server ID\n");
+			ft_printf("invalid server ID\n");
 			exit(1);
 		}
 		i++;
+	}
+}
+
+void	send_bit(int *b, int pid)
+{
+	int	j;
+
+	j = 0;
+	while (j <= 7)
+	{
+		if (b[j] == 0)
+		{
+			if (kill(pid, SIGUSR1) < 0)
+			{
+				ft_printf("ERROR");
+				exit(1);
+			}
+		}
+		else if (b[j] == 1)
+		{
+			if (kill(pid, SIGUSR2) < 0)
+			{
+				ft_printf("ERROR");
+				exit(1);
+			}
+		}
+		j++;
+		usleep(500);
 	}
 }
 
@@ -56,18 +84,10 @@ void	send_message(char *message, int pid)
 	{
 		b = convert_bit(message[i]);
 		j = 0;
-		while (j <= 7)
-		{
-			if (b[j] == 0)
-				kill(pid, SIGUSR1);
-			else if (b[j] == 1)
-				kill(pid, SIGUSR2);
-			j++;
-			usleep(500);
-		}
+		send_bit(b, pid);
 		i++;
+		free(b);
 	}
-	free(b);
 }
 
 int	main(int ac, char **av)
@@ -77,10 +97,10 @@ int	main(int ac, char **av)
 	if (ac == 3)
 	{
 		check_pid(av[1]);
-		pid = atoi(av[1]);
+		pid = ft_atoi(av[1]);
 		send_message(av[2], pid);
 	}
 	else
-		printf("you should write one message!\n");
+		ft_printf("you should write one message!\n");
 	return (0);
 }
